@@ -7,7 +7,8 @@ import {
   FlatList, 
   StyleSheet, 
   View, 
-  Text 
+  Text,
+  RefreshControl
 } from 'react-native';
 import Style from '../styles/Style';
 import YelpItem from './YelpItem';
@@ -34,8 +35,16 @@ class HomeView extends React.Component {
     super(props);
 
     this.state = {
-      isLoading: true
+      isLoading: true,
+      refreshing: false
     };
+  }
+
+  _onRefresh = () => {
+    this.setState({refreshing: true});
+    this.request(() => {
+      this.setState({refreshing: false});
+    });
   }
 
   componentDidMount() {
@@ -239,7 +248,12 @@ class HomeView extends React.Component {
       const { onPress } = this.props;
       return (
         <BackgroundManager onBackgroundFetch={(completion) => this.onBackgroundFetch(completion)}>
-          <FlatList 
+          <FlatList refreshControl={
+              <RefreshControl
+                refreshing={this.state.refreshing}
+                onRefresh={this._onRefresh}
+              />
+            }
             style={styles.list}
             data={filteredBusinesses}
             renderItem={({item}) => 
