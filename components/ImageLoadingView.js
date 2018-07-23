@@ -10,16 +10,16 @@ export default class ImageLoadingView extends Component {
   constructor(props) {
     super(props);
 
-    this.onLoad = this.onLoad.bind(this);
-
     this.state = {
       isLoading: true,
       opacity: new Animated.Value(0)
     };
   }
 
-  onLoad() {
-    Animated.timing(this.state.opacity, {
+  onLoad = () => {
+    const { opacity } = this.state;
+
+    Animated.timing(opacity, {
       toValue: 1,
       duration: 1000
     }).start(event => {
@@ -37,7 +37,7 @@ export default class ImageLoadingView extends Component {
         <Animated.Image
           resizeMode={'cover'}
           style={{flex: 1, opacity: opacity}}
-          source={source}
+          source={source} // TODO: Queue image loading to prevent possible thread starvation?
           onLoad={this.onLoad}
         />
       </View>
