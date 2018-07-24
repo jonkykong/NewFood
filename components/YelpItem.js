@@ -23,16 +23,16 @@ export default class YelpItem extends React.PureComponent {
         <View style={styles.textSpacedContainer}>
             <Text style={[Style.textTitle, Style.container]} numberOfLines={1}>{item.name}</Text>
             {item.price ? 
-            <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{item.price}</Text> :
-            <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{(item.distance / 1609.34).toFixed(1) + ' mi'}</Text>
+              <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{item.price}</Text> :
+              <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{(item.distance / 1609.34).toFixed(1) + ' mi'}</Text>
             }
         </View>
         {<View style={styles.textSpacedContainer}>
             <StarView value={item.rating} />
             <Text style={[Style.textBody, Style.container]} numberOfLines={1}>{' ' + item.review_count + ' Reviews'}</Text>
             {item.price ? 
-            <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{(item.distance / 1609.34).toFixed(1) + ' mi'}</Text> : 
-            null
+              <Text style={[Style.textDetail, Style.paddingL]} numberOfLines={1} ellipsizeMode='clip'>{(item.distance / 1609.34).toFixed(1) + ' mi'}</Text> : 
+              null
             }
         </View>}
         <Text style={Style.textBody} numberOfLines={1} >{
