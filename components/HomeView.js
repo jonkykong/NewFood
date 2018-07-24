@@ -42,14 +42,14 @@ class HomeView extends React.Component {
 
   _onRefresh = () => {
     this.setState({refreshing: true});
-    this.request(() => {
+    this._request(() => {
       this.setState({refreshing: false});
     });
   }
 
   componentDidMount() {
     clearNotifications();
-    this.location();
+    this._location();
 
     const { saveKey } = this.props;
 
@@ -78,7 +78,7 @@ class HomeView extends React.Component {
     })
   }
 
-  location() {
+  _location = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         this.setState({
@@ -86,7 +86,7 @@ class HomeView extends React.Component {
           longitude: position.coords.longitude,
           error: null
         });
-        this.request();
+        this._request();
         const { saveKey } = this.props;
         if (saveKey) {
           const location = { 
@@ -107,7 +107,7 @@ class HomeView extends React.Component {
     );
   }
 
-  request(callback = () => {}) {
+  _request(callback = () => {}) {
     const { filter, saveKey } = this.props;
     const { latitude, longitude } = this.state;
 
@@ -151,8 +151,8 @@ class HomeView extends React.Component {
   }
 
   // Returns a list of the new businesses from the previously fetched list of businesses
-  newBusinesses(prevBusinesses) {
-    const filteredBusinesses = this.filterBusinesses();
+  _newBusinesses = (prevBusinesses) => {
+    const filteredBusinesses = this._filterBusinesses();
     prevBusinesses = new Map(prevBusinesses.map(business => [business.id, business]));
     let newBusinesses = [];
 
@@ -167,9 +167,9 @@ class HomeView extends React.Component {
     return newBusinesses;
   }
 
-  onBackgroundFetch(completion) {
+  _onBackgroundFetch = (completion) => {
     const prevBusinesses = this.state.businesses;
-    this.request(() => {
+    this._request(() => {
       const { error } = this.state;
 
       if (error) {
@@ -177,7 +177,7 @@ class HomeView extends React.Component {
         return;
       }
 
-      let newBusinesses = this.newBusinesses(prevBusinesses);
+      let newBusinesses = this._newBusinesses(prevBusinesses);
 
       if (newBusinesses.length == 0) {
         completion(BackgroundRefreshComplete.NODATA);
@@ -218,7 +218,7 @@ class HomeView extends React.Component {
   }
 
   // Returns a list of businesses after applying the current filter requirements.
-  filterBusinesses() {
+  _filterBusinesses = () => {
     const { businesses } = this.state;
     const { filter } = this.props;
 
@@ -230,24 +230,24 @@ class HomeView extends React.Component {
     const stars = filter.stars || DEFAULT_OPTIONS.filter.stars;
     const price = filter.price || DEFAULT_OPTIONS.filter.price;
 
-    return businesses.filter( (business) => {
+    return businesses.filter(business => {
       return business.review_count >= reviews && 
       business.rating >= stars &&
       (JSON.stringify(price) == JSON.stringify(Array(4).fill(false)) ? 
         true :
         (business.price ? price[business.price.length - 1] : false)
       )
-    })
+    });
   }
 
   render() {
     const { isLoading, error, latitude, longitude, businesses } = this.state;
-    const filteredBusinesses = this.filterBusinesses()
+    const filteredBusinesses = this._filterBusinesses()
 
     if (filteredBusinesses && filteredBusinesses.length > 0) {
       const { onPress } = this.props;
       return (
-        <BackgroundManager onBackgroundFetch={(completion) => this.onBackgroundFetch(completion)}>
+        <BackgroundManager onBackgroundFetch={(completion) => this._onBackgroundFetch(completion)}>
           <FlatList refreshControl={
               <RefreshControl
                 refreshing={this.state.refreshing}
@@ -291,7 +291,7 @@ class HomeView extends React.Component {
       <View style={Style.containerCenterXY}>
         <Text style={[Style.textTitle, {textAlign: 'center'}]}>{noResults}</Text>;
         <View style={Style.button}>
-          <TouchableHighlight underlayColor={Style.colors.highlightColor} onPress={() => this.location()}>
+          <TouchableHighlight underlayColor={Style.colors.highlightColor} onPress={() => this._location()}>
             <Text style={Style.textButton}>Refresh</Text>
           </TouchableHighlight>
         </View>
