@@ -245,7 +245,6 @@ class HomeView extends React.Component {
     const filteredBusinesses = this._filterBusinesses()
 
     if (filteredBusinesses && filteredBusinesses.length > 0) {
-      const { onPress } = this.props;
       return (
         <BackgroundManager onBackgroundFetch={(completion) => this._onBackgroundFetch(completion)}>
           <FlatList refreshControl={
@@ -256,13 +255,7 @@ class HomeView extends React.Component {
             }
             style={styles.list}
             data={filteredBusinesses}
-            renderItem={({item}) => 
-              <View style={Style.containerWhite}>
-                <TouchableHighlight underlayColor={Style.colors.highlightColor} onPress={() => onPress(item)}>
-                  <YelpItem item={item} />
-                </TouchableHighlight>
-              </View>
-            }
+            renderItem={({item}) => this._renderItem(item)}
             ItemSeparatorComponent={() => <View style={Style.listBorder} />}
             keyExtractor={(item, index) => item.id}
           />
@@ -295,6 +288,18 @@ class HomeView extends React.Component {
             <Text style={Style.textButton}>Refresh</Text>
           </TouchableHighlight>
         </View>
+      </View>
+    );
+  }
+
+  _renderItem = (item) => {
+    const { onPress } = this.props;
+    
+    return (
+      <View style={Style.containerWhite}>
+        <TouchableHighlight underlayColor={Style.colors.highlightColor} onPress={() => onPress(item)}>
+          <YelpItem item={item} />
+        </TouchableHighlight>
       </View>
     );
   }
