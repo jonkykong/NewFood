@@ -49,8 +49,11 @@ class HomeView extends React.Component {
 
   componentDidMount() {
     clearNotifications();
+    this._load();
     this._location();
+  }
 
+  _load = (callback = () => {}) => {
     const { saveKey } = this.props;
 
     if (!saveKey) {
@@ -67,7 +70,7 @@ class HomeView extends React.Component {
     })
 
     AsyncStorage.getItem(saveKey + ':location').then((json) => {
-      if (json !== null) {
+      if (json !== null && !this.state.location) {
         const location = JSON.parse(json);
         this.setState({ 
           longitude: location.longitude, 
@@ -75,6 +78,7 @@ class HomeView extends React.Component {
           isLoading: false 
         });
       }
+      callback();
     })
   }
 
@@ -96,9 +100,10 @@ class HomeView extends React.Component {
           AsyncStorage.setItem(saveKey + ':location', JSON.stringify(location));
         }
       },
-      (error) => this.setState({ 
-        error: error.message
-      }),
+      (error) => {
+        this.setState({ error: error.message });
+        this._request();
+      },
       { 
         enableHighAccuracy: true, 
         timeout: 20000, 
@@ -132,6 +137,7 @@ class HomeView extends React.Component {
     })
     .then(data => {
       this.setState({ 
+        error: null,
         businesses: data.businesses, 
         isLoading: false 
       });
@@ -159,7 +165,6 @@ class HomeView extends React.Component {
     for (i in filteredBusinesses) {
       const newBusiness = filteredBusinesses[i];
       if (!prevBusinesses.get(newBusiness.id)) {
-        console.log(newBusiness.id, prevBusinesses.get(newBusiness.id));
         newBusinesses.push(newBusiness);
       }
     }
@@ -169,51 +174,53 @@ class HomeView extends React.Component {
 
   _onBackgroundFetch = (completion) => {
     const prevBusinesses = this.state.businesses;
-    this._request(() => {
-      const { error } = this.state;
+    this._load(() => {
+      this._request(() => {
+        const { error } = this.state;
 
-      if (error) {
-        completion(BackgroundRefreshComplete.FAILED);
-        return;
-      }
+        if (error) {
+          completion(BackgroundRefreshComplete.FAILED);
+          return;
+        }
 
-      let newBusinesses = this._newBusinesses(prevBusinesses);
+        let newBusinesses = this._newBusinesses(prevBusinesses);
 
-      if (newBusinesses.length == 0) {
-        completion(BackgroundRefreshComplete.NODATA);
-        return;
-      }
+        if (newBusinesses.length == 0) {
+          completion(BackgroundRefreshComplete.NODATA);
+          return;
+        }
 
-      setApplicationIconBadgeNumber(newBusinesses.length);
+        const badge = newBusinesses.length;
 
-      const lastBusiness = newBusinesses.pop();
-      const title = 'New Food Near You!'
-      let body = 'Check out ';
-      if (newBusinesses.length > 0) {
-        const names = newBusinesses.map(business => business.name).join(', ') + ' & ';
-        body += names;
-      }
-      body += lastBusiness.name;
+        const lastBusiness = newBusinesses.pop();
+        const title = 'New Food Near You!'
+        let body = 'Check out ';
+        if (newBusinesses.length > 0) {
+          const names = newBusinesses.map(business => business.name).join(', ') + ' & ';
+          body += names;
+        }
+        body += lastBusiness.name;
 
-      clearNotifications();
+        clearNotifications();
 
-      const { notifications } = this.props;
-    
-      switch (notifications) {
-        case NotificationFrequency.DAILY:
-          scheduleNotification(title, body, tomorrowAt11());
-          break;
+        const { notifications } = this.props;
+      
+        switch (notifications) {
+          case NotificationFrequency.DAILY:
+            scheduleNotification(title, body, tomorrowAt11(), badge);
+            break;
 
-        case NotificationFrequency.WEEKLY:
-          scheduleNotification(title, body, nextFridayAt11());
-          break;
+          case NotificationFrequency.WEEKLY:
+            scheduleNotification(title, body, nextFridayAt11(), badge);
+            break;
 
-        case NotificationFrequency.MONTHLY:
-          scheduleNotification(title, body, nextMonthAt11());
-          break;
-      }
+          case NotificationFrequency.MONTHLY:
+            scheduleNotification(title, body, nextMonthAt11(), badge);
+            break;
+        }
 
-      completion(BackgroundRefreshComplete.NEWDATA);
+        completion(BackgroundRefreshComplete.NEWDATA);
+      });
     });
   }
 
